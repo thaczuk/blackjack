@@ -5,6 +5,9 @@
 #4. Done: Use multiple decks to prevent against card counting players.
 #
 # Need to refactor code drastically and check for empty deck when playing subsequent games
+# Also: By rule, the dealer must hit until she has at least 17. If the dealer busts, then the player wins. 
+# If the dealer, hits 21, then the dealer wins. If, however, the dealer stays, 
+# then we compare the sums of the two hands between the player and dealer; higher value wins.
 
 def check_dealer_hand cards, total
 	print "Dealer has: ["
@@ -88,15 +91,17 @@ while play_again
 		elsif player_total == 21
 				puts "BLACKJACK!!! You win!"
 				break
+		elsif dealer_total == 21
+				puts "Blackjack. You lose!"
+				break
 		else
 			puts "Would you like to hit or stay? 1) h 2) s"
 			hit_or_stay = gets.chomp
 			
 			# stay
 			if hit_or_stay == "s"
-				puts "STAY"
 				continue = false
-				while dealer_did_not_bust
+				while dealer_did_not_bust && dealer_total < 17
 					dealer << deck.pop
 					dealer_total = calculate_total dealer
 					
@@ -113,9 +118,14 @@ while play_again
 						break
 					elsif dealer_total > player_total
 						puts "Dealer wins"
-						dealer_did_not_bust = false #could use better logic
+						break
+					elsif player_total > dealer_total
+						puts "Player wins"
+						break
+					elsif player_total == dealer_total
+						puts "Draw"
+						break
 					end
-					puts "EXIT STAY"
 				end
 			#hit
 			else
@@ -125,15 +135,18 @@ while play_again
 
 				if player_total > 21
 					check_player_hand name, player, player_total
-					puts "BUST!!!"
+					puts "BUST!!! You lose"
 					break
 				elsif player_total == 21
+					check_player_hand name, player, player_total
 					puts "BLACKJACK!!!"
 					break
 				end
-				dealer << deck.pop
-				dealer_total = calculate_total dealer
-				
+				if dealer_total < 17
+					dealer << deck.pop
+					dealer_total = calculate_total dealer
+				end
+
 				if dealer_total > 21
 					check_dealer_hand dealer, dealer_total
 					check_player_hand name, player, player_total
