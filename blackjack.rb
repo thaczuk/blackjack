@@ -51,6 +51,7 @@ number_of_decks = gets.chomp.to_i
 play_again = true
 
 while play_again
+  puts 'NEW GAME'
   suits = %w[ H D S C ]
   cards = %w[ 2 3 4 5 6 7 8 9 10 J Q K A ]
 
@@ -60,6 +61,7 @@ while play_again
 
   player = []
   dealer = []
+  blackjack_or_bust = false
 
   player << deck.pop
   dealer << deck.pop
@@ -69,84 +71,77 @@ while play_again
   player_total = calculate_total player
   dealer_total = calculate_total dealer
 
-  continue = true
-  dealer_did_not_bust = true
-  while continue
+  check_dealer_hand dealer, dealer_total
+  check_player_hand name, player, player_total
+
+  # Player turn
+  if player_total == 21
+    puts 'BLACKJACK!!! You win!'
+    blackjack_or_bust = true
+  end
+
+  while player_total < 21 && !blackjack_or_bust
+    puts 'Would you like to hit or stay? 1) h 2) s'
+    hit_or_stay = gets.chomp
+
+    # stay
+    if hit_or_stay == 's' # anything else is a HIT
+        puts 'STAY'
+        break
+    end
+
+    # hit
+    puts 'HIT'
+    player << deck.pop
+    player_total = calculate_total player
     check_dealer_hand dealer, dealer_total
     check_player_hand name, player, player_total
 
-    if player_total > 21
-        puts 'BUST!!!'
-        break
-    elsif player_total == 21
-        puts 'BLACKJACK!!! You win!'
-        break
+    if player_total == 21
+      puts 'BLACKJACK!!!'
+      blackjack_or_bust = true
+      break
+    elsif player_total > 21
+      puts 'BUST!!! You lose'
+      blackjack_or_bust = true
+      break
+    end
+  end
+
+  # Dealer turn
+  if dealer_total == 21 && !blackjack_or_bust
+    puts 'Blackjack. Dealer wins'
+    blackjack_or_bust = true
+  end
+
+  while dealer_total < 17 && !blackjack_or_bust
+    # hit
+    puts 'DEALER HIT'
+    dealer << deck.pop
+    dealer_total = calculate_total dealer
+
+    if dealer_total >21
+      puts 'Dealer busts. You win!!!'
+      blackjack_or_bust = true
+      break
     elsif dealer_total == 21
-        puts 'Blackjack. You lose!'
-        break
+      puts 'Dealer blackjack. You lose'
+      blackjack_or_bust = true
+      break
+    end
+  end
+
+  # Compare hands
+  unless blackjack_or_bust
+    check_dealer_hand dealer, dealer_total
+    check_player_hand name, player, player_total
+
+    if dealer_total > player_total
+      puts 'Dealer wins'
+    elsif dealer_total < player_total
+      puts 'You win!!!'
     else
-      puts 'Would you like to hit or stay? 1) h 2) s'
-      hit_or_stay = gets.chomp
-
-      # stay
-      if hit_or_stay == 's'
-        continue = false
-        while dealer_did_not_bust && dealer_total < 17 # logic flawed
-          dealer << deck.pop
-          dealer_total = calculate_total dealer
-
-          check_dealer_hand dealer, dealer_total
-          check_player_hand name, player, player_total
-          puts 'STAY'
-          if dealer_total > 21
-            puts 'Dealer busts. You win!!!'
-            break
-          elsif dealer_total == 21
-            puts 'Blackjack. Dealer wins'
-            break
-          elsif dealer_total > player_total
-            puts 'Dealer wins'
-            break
-          elsif player_total > dealer_total
-            puts 'Player wins'
-            break
-          elsif player_total == dealer_total
-            puts 'Draw'
-            break
-          end
-        end
-      # hit
-      else
-        puts 'HIT'
-        player << deck.pop
-        player_total = calculate_total player
-
-        if player_total > 21
-          check_player_hand name, player, player_total
-          puts 'BUST!!! You lose'
-          break
-        elsif player_total == 21
-          check_player_hand name, player, player_total
-          puts 'BLACKJACK!!!'
-          break
-        end
-        if dealer_total < 17
-          dealer << deck.pop
-          dealer_total = calculate_total dealer
-        end
-
-        if dealer_total > 21
-          check_dealer_hand dealer, dealer_total
-          check_player_hand name, player, player_total
-          puts 'Dealer busts. You win!!!'
-          break
-        elsif dealer_total == 21
-          check_dealer_hand dealer, dealer_total
-          check_player_hand name, player, player_total
-          puts 'Blackjack. Dealer wins'
-          break
-        end
-      end
+      puts 'Draw'
     end
   end
 
